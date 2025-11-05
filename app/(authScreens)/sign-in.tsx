@@ -12,7 +12,7 @@ export default function SignInScreen() {
     try {
       await signIn(email, password);
       // Navigation after successful sign in
-      router.replace('/(screens)/feed');
+      router.replace('/(tabs)/feed');
     } catch (err) {
       // Error is already handled in the hook, so we can just log it here if needed
       console.log('Sign in error:', err);
@@ -74,7 +74,7 @@ export default function SignInScreen() {
         </Text>
       </TouchableOpacity>
       
-      <Link href="/(screens)/sign-up" asChild>
+      <Link href="/(authScreens)/sign-up" asChild>
         <TouchableOpacity style={{ marginTop: 15, alignItems: 'center' }}>
           <Text style={{ color: '#0095f6' }}>
             Don't have an account? Sign Up

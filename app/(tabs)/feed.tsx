@@ -10,7 +10,7 @@ const Feed = () => {
     try {
       await logout();
       // Redirect after logout
-      router.replace('/(screens)/welcome');
+      router.replace('/(authScreens)/welcome');
     } catch (error) {
       console.log('Logout error:', error);
     }

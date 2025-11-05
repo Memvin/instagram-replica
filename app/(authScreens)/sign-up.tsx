@@ -108,7 +108,7 @@ export default function SignUpScreen() {
         [
           {
             text: 'OK',
-            onPress: () => router.replace('/(screens)/feed'),
+            onPress: () => router.replace('/(tabs)/feed'),
           },
         ]
       );
@@ -243,7 +243,7 @@ export default function SignUpScreen() {
             <Text style={{ color: '#666', marginRight: 5 }}>
               Already have an account?
             </Text>
-            <Link href="/(screens)/sign-in" asChild>
+            <Link href="/(authScreens)/sign-in" asChild>
               <TouchableOpacity disabled={isSubmitting}>
                 <Text style={{ color: '#0095f6', fontWeight: '600' }}>
                   Sign In

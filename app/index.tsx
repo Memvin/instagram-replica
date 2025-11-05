@@ -5,7 +5,6 @@ import { ActivityIndicator, Text, View } from 'react-native';
 export default function Index() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Show loading indicator while checking authentication
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -17,8 +16,8 @@ export default function Index() {
 
   // Redirect based on authentication status
   if (isAuthenticated) {
-    return <Redirect href="/(screens)/feed" />;
+    return <Redirect href="/(tabs)/feed" />;
   } else {
-    return <Redirect href="/(screens)/welcome" />;
+    return <Redirect href="/(authScreens)/welcome" />;
   }
 }

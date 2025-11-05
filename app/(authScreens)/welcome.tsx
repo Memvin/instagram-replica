@@ -9,13 +9,13 @@ export default function WelcomeScreen() {
       <Text style={styles.subtitle}>Welcome to the app</Text>
 
       <View style={styles.buttonContainer}>
-        <Link href="/(screens)/sign-in" asChild>
+        <Link href="/(authScreens)/sign-in" asChild>
           <Pressable style={styles.button}>
             <Text style={styles.buttonText}>Sign In</Text>
           </Pressable>
         </Link>
 
-        <Link href="/(screens)/sign-up" asChild>
+        <Link href="/(authScreens)/sign-up" asChild>
           <Pressable style={styles.outlineButton}>
             <Text style={[styles.buttonText, styles.outlineButtonText]}>
               Sign Up
