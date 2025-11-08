@@ -1,10 +1,9 @@
-// app/(tabs)/feed.tsx
+
 import { PostCard } from '@/src/components/PostCard';
 import { useAuth } from '@/src/hooks/useAuth';
 import { postService } from '@/src/services/postService';
 import { Post } from '@/src/types/posts';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -34,6 +33,7 @@ export default function FeedScreen() {
       const postsData = await postService.getPosts();
       setPosts(postsData);
     } catch (error) {
+      console.error('Error loading posts:', error);
       Alert.alert('Error', 'Failed to load posts');
     } finally {
       setIsLoading(false);
@@ -46,56 +46,101 @@ export default function FeedScreen() {
     loadPosts();
   };
 
-  const handleLike = (postId: string) => {
-    if (!user) return;
+  const handleLike = async (postId: string) => {
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to like posts');
+      return;
+    }
 
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
-        if (post.id === postId) {
-          const isLiked = post.likes.includes(user.uid);
-          return {
-            ...post,
-            likes: isLiked 
-              ? post.likes.filter(id => id !== user.uid)
-              : [...post.likes, user.uid]
-          };
-        }
-        return post;
-      })
-    );
+    try {
+      // Update UI optimistically first
+      setPosts(prevPosts => 
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            const isLiked = post.likes.includes(user.uid);
+            return {
+              ...post,
+              likes: isLiked 
+                ? post.likes.filter(id => id !== user.uid)
+                : [...post.likes, user.uid]
+            };
+          }
+          return post;
+        })
+      );
+
+      // Then call Firebase service
+      await postService.toggleLike(postId, user.uid);
+      
+    } catch (error: any) {
+      console.error('Error toggling like:', error);
+      Alert.alert('Error', error.message || 'Failed to toggle like');
+      loadPosts(); // Reload to get correct state
+    }
   };
 
-  const handleAddComment = (postId: string, text: string) => {
-    if (!text.trim() || !user) return;
+  const handleAddComment = async (postId: string, text: string) => {
+    if (!text.trim() || !user) {
+      return;
+    }
 
-    const newComment = {
-      id: Date.now().toString(),
-      userId: user.uid,
-      username: user.name || 'User',
-      text: text,
-      createdAt: new Date(),
-    };
+    try {
+      // Create optimistic comment (matching Comment interface)
+      const optimisticComment = {
+        id: `temp-${Date.now()}`,
+        userId: user.uid,
+        username: user.name,
+        text: text.trim(),
+        createdAt: new Date(),
+      };
 
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            comments: [...post.comments, newComment]
-          };
-        }
-        return post;
-      })
-    );
+      // Update UI optimistically
+      setPosts(prevPosts => 
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: [...post.comments, optimisticComment]
+            };
+          }
+          return post;
+        })
+      );
 
-    setCommentText('');
-    setActiveCommentPost(null);
+      // Clear comment input
+      setCommentText('');
+      setActiveCommentPost(null);
+
+      // call firebase service
+      await postService.addComment(postId, text, user);
+      
+      // Reload to get the actual comment with proper ID
+      await loadPosts();
+      
+    } catch (error: any) {
+      console.error('Error adding comment:', error);
+      Alert.alert('Error', error.message || 'Failed to add comment');
+      loadPosts(); // Reload to get correct state
+    }
   };
 
   const handleToggleComment = (postId: string) => {
     setActiveCommentPost(activeCommentPost === postId ? null : postId);
     setCommentText('');
   };
+
+
+
+  const handleUserPress = (userId: string, username: string) => {
+  // Navigate to the user's profile screen
+  router.push({
+    pathname: '/(protectedScreens)/user-profile',
+    params: { 
+      userId: userId,
+      username: username 
+    }
+  });
+};
 
   if (isLoading) {
     return (
@@ -119,6 +164,7 @@ export default function FeedScreen() {
             onToggleComment={handleToggleComment}
             commentText={commentText}
             onCommentTextChange={setCommentText}
+            onUserPress={handleUserPress}
           />
         )}
         keyExtractor={item => item.id}
@@ -132,11 +178,10 @@ export default function FeedScreen() {
         }
         ListEmptyComponent={
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-            <Ionicons name="camera-outline" size={80} color="#ccc" />
-            <Text style={{ fontSize: 18, fontWeight: '600', color: '#666', marginTop: 16 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#666', textAlign: 'center' }}>
               No posts yet
             </Text>
-            <Text style={{ fontSize: 14, color: '#999', marginTop: 8 }}>
+            <Text style={{ fontSize: 14, color: '#999', marginTop: 8, textAlign: 'center' }}>
               Be the first to share a post!
             </Text>
           </View>

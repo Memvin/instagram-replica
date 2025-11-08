@@ -135,7 +135,7 @@ export default function EditProfile() {
         }}
       />
 
-      {/* Save Button - Same pattern as create-post */}
+      {/* Save Button  */}
       <TouchableOpacity
         onPress={onSave}
         disabled={isLoading || !name.trim()}
